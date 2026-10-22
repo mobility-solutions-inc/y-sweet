@@ -15,7 +15,7 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 dependencies = [
-    "requests~=2.32.2",
+    "requests~=2.33",
     "pycrdt>=0.9.11,<0.13.0",
 ]
 requires-python = ">=3.12"
@@ -33,6 +33,6 @@ pythonpath = [".", "src"]
 
 [dependency-groups]
 dev = [
-    "pytest>=8.3.3",
+    "pytest>=9.0.3",
     "ruff>=0.8.0",
 ]
