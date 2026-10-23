@@ -1,14 +1,10 @@
 name: Check TypeScript code
 
 on:
+  push:
+    branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
-    paths:
-      - ".github/workflows/check-ts.yml"
-      - "examples/**"
-      - "debugger/**"
-      - "tests/**"
-      - "js-pkg/**"
 
 jobs:
   check-ts-format:
@@ -20,7 +16,7 @@ jobs:
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: '16'
+        node-version: '22'
 
     - name: Check Formatting of Examples
       run: npx prettier --check "**/src/**/*.{js,ts,tsx}"
