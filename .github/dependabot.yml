@@ -8,6 +8,12 @@ updates:
       - /releaser
     schedule:
       interval: weekly
+    ignore:
+      # yrs-kvstore 0.3 (our storage layer) requires yrs ^0.19, so moving past
+      # 0.19 needs a migration, not a bump. Dependabot treats 0.x minor bumps as
+      # major, so ignore both; 0.19.x patches still come through.
+      - dependency-name: yrs
+        update-types: ["version-update:semver-major", "version-update:semver-minor"]
     groups:
       cargo-minor-patch:
         update-types: [minor, patch]
