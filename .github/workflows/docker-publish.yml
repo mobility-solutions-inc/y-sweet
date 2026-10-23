@@ -7,6 +7,12 @@ on:
   pull_request:
     branches: [ "main" ]
 
+# Back-to-back merges to main would otherwise build in parallel, and whichever
+# finishes last wins the `latest` tag, even if it's the older commit.
+concurrency:
+  group: docker-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   REGISTRY: ghcr.io
   # Published to ghcr.io/<owner>/<repo>, e.g. ghcr.io/mobility-solutions-inc/y-sweet
