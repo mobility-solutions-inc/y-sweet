@@ -7,6 +7,6 @@
     "build": "rm -rf build && mkdir build && mkdir -p build && redocly build-docs server.yml --output build/index.html && redocly build-docs document.yml --output build/document.html"
   },
   "dependencies": {
-    "@redocly/cli": "1.25.5"
+    "@redocly/cli": "1.34.22"
   }
 }

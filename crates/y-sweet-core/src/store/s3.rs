@@ -7,7 +7,6 @@ use rusty_s3::{Bucket, Credentials, S3Action};
 use serde::{Deserialize, Serialize};
 use std::sync::OnceLock;
 use std::time::Duration;
-use time::OffsetDateTime;
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct S3Config {
@@ -72,7 +71,7 @@ impl S3Store {
         action: A,
         body: Option<Vec<u8>>,
     ) -> Result<Response> {
-        let url = action.sign_with_time(PRESIGNED_URL_DURATION, &OffsetDateTime::now_utc());
+        let url = action.sign(PRESIGNED_URL_DURATION);
         let mut request = self.client.request(method, url);
 
         request = if let Some(body) = body {
