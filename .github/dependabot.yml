@@ -1,0 +1,56 @@
+version: 2
+
+updates:
+  - package-ecosystem: cargo
+    directories:
+      - /crates
+      - /crates/y-sweet-worker
+      - /releaser
+    schedule:
+      interval: weekly
+    groups:
+      cargo-minor-patch:
+        update-types: [minor, patch]
+
+  - package-ecosystem: npm
+    directories:
+      # Root workspace covers js-pkg/{client,react,sdk,gen-docs}, examples, debugger, tests.
+      - /
+      - /crates/y-sweet-worker
+      - /js-pkg/server
+      - /local-first-landscape
+      - /openapi
+    schedule:
+      interval: weekly
+    groups:
+      npm-minor-patch:
+        update-types: [minor, patch]
+
+  - package-ecosystem: uv
+    directory: /python
+    schedule:
+      interval: weekly
+    groups:
+      python-minor-patch:
+        update-types: [minor, patch]
+
+  - package-ecosystem: docker
+    directories:
+      - /crates
+      - /examples/nextjs
+      - /.github/workflows
+    schedule:
+      interval: weekly
+
+  - package-ecosystem: docker-compose
+    directory: /deploy
+    schedule:
+      interval: weekly
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      github-actions:
+        patterns: ["*"]

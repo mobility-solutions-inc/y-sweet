@@ -1,18 +1,17 @@
 name: Unit Tests
 
 on:
+  push:
+    branches: ["main"]
   pull_request:
     branches: ["main"]
-    paths:
-      - "crates/**"
-      - ".github/workflows/unit-tests.yml"
 
 env:
   CARGO_TERM_COLOR: always
 
 jobs:
   unit-test:
-    runs-on: ubuntu-latest-16-cores
+    runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: ./crates

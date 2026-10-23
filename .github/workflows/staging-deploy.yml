@@ -1,17 +1,16 @@
 name: Staging Deploy
 
+# Deploys y-sweet-worker to Cloudflare. Manual-only: this fork has no
+# CLOUDFLARE_API_TOKEN secret configured yet, so it can't run on every push.
 on:
-  push:
-    branches: [ "main" ]
-    paths:
-      - "crates/**"
+  workflow_dispatch:
 
 env:
   CARGO_TERM_COLOR: always
 
 jobs:
   staging-deploy:
-    runs-on: ubuntu-latest-16-cores
+    runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: ./crates/y-sweet-worker
