@@ -6,8 +6,8 @@
 from y_sweet_sdk import DocumentManager
 
 # Get the websocket url for a document.
-doc = DocumentManager('ys://localhost:8080')
-url = doc.get_websocket_url('my-document-id')
+doc = DocumentManager("ys://localhost:8080")
+url = doc.get_websocket_url("my-document-id")
 
 # Connect to the document using y_py and ypy_websocket.
 # (Based on: https://davidbrochart.github.io/ypy-websocket/usage/client/)
@@ -20,8 +20,11 @@ ydoc = Y.YDoc()
 
 # Simple example: log the array "todolist" to stdout every time it changes.
 data = ydoc.get_array("todolist")
+
+
 def data_changed(event: Y.AfterTransactionEvent):
     print(f"data changed: {data.to_json()}")
+
 
 data.observe_deep(data_changed)
 
