@@ -13,6 +13,8 @@ export default function Home() {
     const payload = urlParams.get('payload')
 
     if (payload) {
+      // The payload is only available from the URL on the client, after hydration.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setClientToken(decodeClientToken(payload))
     }
   }, [])
