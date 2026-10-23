@@ -126,10 +126,13 @@ const RichtextSlateEditor = ({
     const e = withReact(
       withYHistory(
         withCursors(withYjs(createEditor(), sharedType), awareness, {
+          // A random cursor color and name are picked once, when the editor is created.
+          /* eslint-disable react-hooks/purity */
           data: {
             color: `#${Math.floor(Math.random() * 16777215).toString(16)}`,
             name: 'Anonymous ' + ANIMAL_NAMES[Math.floor(Math.random() * ANIMAL_NAMES.length)],
           },
+          /* eslint-enable react-hooks/purity */
         }),
       ),
     )
@@ -172,7 +175,7 @@ const RichtextSlateEditor = ({
       <div className="p-2">
         <DecoratedEditable
           renderElement={renderElement}
-          className="p-2 min-h-[100px] !outline-none"
+          className="p-2 min-h-[100px] outline-hidden!"
           spellCheck
           autoFocus
           onKeyDown={(event) => {
@@ -356,12 +359,12 @@ function renderDecoratedLeaf(props: RenderLeafProps) {
         <span className="relative">
           <span
             contentEditable={false}
-            className="absolute top-0 bottom-0 w-0.5 left-[-1px]"
+            className="absolute top-0 bottom-0 w-0.5 -left-px"
             style={{ backgroundColor: caret.data.color }}
           />
           <span
             contentEditable={false}
-            className="absolute text-xs text-white left-[-1px] top-0 whitespace-nowrap rounded rounded-bl-none px-1.5 py-0.5 select-none"
+            className="absolute text-xs text-white -left-px top-0 whitespace-nowrap rounded-sm rounded-bl-none px-1.5 py-0.5 select-none"
             style={{
               backgroundColor: caret.data.color,
               transform: 'translateY(-100%)',

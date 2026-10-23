@@ -14,7 +14,7 @@ function classNames(...classes: string[]) {
 type NavLinkProps = {
   href: string
   curRoute?: string
-  children: JSX.Element | string
+  children: React.JSX.Element | string
 }
 
 function NavLink({ href, curRoute, children }: NavLinkProps) {
@@ -126,7 +126,7 @@ export default function Sidebar({ children }: { children: React.ReactNode }) {
                     <div className="absolute top-0 right-0 -mr-12 pt-2">
                       <button
                         type="button"
-                        className="ml-1 flex h-10 w-10 items-center justify-center rounded-full focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white"
+                        className="ml-1 flex h-10 w-10 items-center justify-center rounded-full focus:outline-hidden focus:ring-2 focus:ring-inset focus:ring-white"
                         onClick={() => setSidebarOpen(false)}
                       >
                         <span className="sr-only">Close sidebar</span>
@@ -137,9 +137,7 @@ export default function Sidebar({ children }: { children: React.ReactNode }) {
                   <Nav curRoute={curRoute} onClickLink={() => setSidebarOpen(false)} />
                 </Dialog.Panel>
               </Transition.Child>
-              <div className="w-14 flex-shrink-0">
-                {/* Force sidebar to shrink to fit close icon */}
-              </div>
+              <div className="w-14 shrink-0">{/* Force sidebar to shrink to fit close icon */}</div>
             </div>
           </Dialog>
         </Transition.Root>
@@ -154,7 +152,7 @@ export default function Sidebar({ children }: { children: React.ReactNode }) {
           <div className="sticky top-0 z-10 bg-pink-900 pl-1 py-1 lg:hidden">
             <button
               type="button"
-              className="-ml-0.5 -mt-0.5 inline-flex h-12 w-12 items-center justify-center rounded-md text-pink-100 hover:text-white focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500"
+              className="-ml-0.5 -mt-0.5 inline-flex h-12 w-12 items-center justify-center rounded-md text-pink-100 hover:text-white focus:outline-hidden focus:ring-2 focus:ring-inset focus:ring-indigo-500"
               onClick={() => setSidebarOpen(true)}
             >
               <span className="sr-only">Open sidebar</span>

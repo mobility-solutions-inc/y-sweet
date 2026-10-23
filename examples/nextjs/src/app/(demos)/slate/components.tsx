@@ -5,55 +5,53 @@ function cn(...args: unknown[]) {
 }
 
 interface BaseProps {
-  className: string
+  className?: string
   [key: string]: unknown
 }
 type OrNull<T> = T | null
 
-export const Button = React.forwardRef(
-  (
-    {
+export const Button = ({
+  className,
+  active,
+  ref,
+  ...props
+}: PropsWithChildren<
+  {
+    active: boolean
+    ref?: React.Ref<HTMLSpanElement>
+  } & BaseProps
+>) => (
+  <span
+    {...props}
+    ref={ref}
+    className={cn(
       className,
-      active,
-      ...props
-    }: PropsWithChildren<
-      {
-        active: boolean
-      } & BaseProps
-    >,
-    ref: React.Ref<HTMLSpanElement>,
-  ) => (
-    <span
-      {...props}
-      ref={ref}
-      className={cn(
-        className,
-        'cursor-pointer flex justify-center items-center m-1 rounded',
-        active ? 'text-white bg-pink-900' : 'text-gray-400 hover:bg-pink-100 hover:text-black',
-      )}
-    />
-  ),
+      'cursor-pointer flex justify-center items-center m-1 rounded-sm',
+      active ? 'text-white bg-pink-900' : 'text-gray-400 hover:bg-pink-100 hover:text-black',
+    )}
+  />
 )
 Button.displayName = 'Button'
 
-export const Menu = React.forwardRef(
-  ({ className, ...props }: PropsWithChildren<BaseProps>, ref: React.Ref<HTMLDivElement>) => (
-    <div {...props} data-test-id="menu" ref={ref} className={cn(className, '')} />
-  ),
+export const Menu = ({
+  className,
+  ref,
+  ...props
+}: PropsWithChildren<{ ref?: React.Ref<HTMLDivElement> } & BaseProps>) => (
+  <div {...props} data-test-id="menu" ref={ref} className={cn(className, '')} />
 )
 Menu.displayName = 'Menu'
 
-export const Toolbar = React.forwardRef(
-  ({ className, ...props }: PropsWithChildren<BaseProps>, ref: React.Ref<HTMLDivElement>) => (
-    <Menu
-      {...props}
-      ref={ref}
-      className={cn(
-        className,
-        'relative border border-b border-gray-200 flex flex-row items-center',
-      )}
-    />
-  ),
+export const Toolbar = ({
+  className,
+  ref,
+  ...props
+}: PropsWithChildren<{ ref?: React.Ref<HTMLDivElement> } & BaseProps>) => (
+  <Menu
+    {...props}
+    ref={ref}
+    className={cn(className, 'relative border border-b border-gray-200 flex flex-row items-center')}
+  />
 )
 
 Toolbar.displayName = 'Toolbar'

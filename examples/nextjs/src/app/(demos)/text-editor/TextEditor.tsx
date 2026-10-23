@@ -21,7 +21,7 @@ export function TextEditor() {
       // These libraries are designed to work in the browser, and will cause warnings
       // if imported on the server. Nextjs renders components on both the server and
       // the client, so we import them lazily here when they are used on the client.
-      const Quill = require('quill')
+      const Quill = require('quill').default
       const QuillCursors = require('quill-cursors')
 
       Quill.register('modules/cursors', QuillCursors)
