@@ -203,6 +203,8 @@ export function TreeView() {
     })
     let root = tree.root()
 
+    // The tree wraps a Y.Map, so it can only be built once the map is available.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setTree(root)
 
     return () => {

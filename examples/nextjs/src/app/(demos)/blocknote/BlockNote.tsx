@@ -1,6 +1,7 @@
 'use client'
 
 import { useYDoc, useYjsProvider } from '@y-sweet/react'
+import { CollaborationExtension } from '@blocknote/core/yjs'
 import { useCreateBlockNote } from '@blocknote/react'
 import { BlockNoteView } from '@blocknote/mantine'
 import '@blocknote/mantine/style.css'
@@ -11,11 +12,13 @@ export function BlockNote() {
   const doc = useYDoc()
 
   const editor = useCreateBlockNote({
-    collaboration: {
-      provider,
-      fragment: doc.getXmlFragment('blocknote'),
-      user: { name: 'Your Username', color: '#ff0000' },
-    },
+    extensions: [
+      CollaborationExtension({
+        provider,
+        fragment: doc.getXmlFragment('blocknote'),
+        user: { name: 'Your Username', color: '#ff0000' },
+      }),
+    ],
   })
 
   return (

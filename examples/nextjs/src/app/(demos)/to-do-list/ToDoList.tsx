@@ -34,14 +34,14 @@ export function ToDoInput(props: { onItem: (text: string) => void }) {
         type="text"
         value={text}
         onChange={changeCallback}
-        className="bg-white flex-1 block ring-pink-900 rounded-md border-0 px-3.5 py-2 text-gray-900 shadow-sm ring-1 ring-inset
+        className="bg-white flex-1 block ring-pink-900 rounded-md border-0 px-3.5 py-2 text-gray-900 shadow-xs ring-1 ring-inset
                  placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-pink-900
                 sm:text-sm sm:leading-6"
       />
       <button
         type="submit"
         className="block rounded-md bg-pink-900 px-3.5 py-2.5 text-center text-sm font-semibold
-                text-white shadow-sm hover:bg-pink-900 focus-visible:outline focus-visible:outline-2
+                text-white shadow-xs hover:bg-pink-900 focus-visible:outline-solid focus-visible:outline-2
                 focus-visible:outline-offset-2 focus-visible:outline-pink-900"
       >
         Add
@@ -69,7 +69,7 @@ export function ToDoItem({ item }: ToDoItemProps) {
           onChange={clickCallback}
         />
         <input
-          className="bg-transparent p-1 rounded text-pink-950 text-lg focus:bg-white"
+          className="bg-transparent p-1 rounded-sm text-pink-950 text-lg focus:bg-white"
           value={item.get('text')}
           onChange={(e) => item.set('text', e.target.value)}
         />
@@ -117,7 +117,7 @@ export function ToDoList() {
       <button
         onClick={clearCompleted}
         className="block rounded-md bg-pink-900 px-3.5 py-2.5 text-center text-sm
-                font-semibold text-white shadow-sm hover:bg-pink-900 focus-visible:outline
+                font-semibold text-white shadow-xs hover:bg-pink-900 focus-visible:outline-solid
                 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pink-900"
       >
         Clear Completed
