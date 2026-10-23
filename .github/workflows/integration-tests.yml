@@ -25,12 +25,10 @@ jobs:
         cache-on-failure: "true"
         workspaces: |
           crates
-    - name: Install client
+    # Install from the repo root: package-lock.json covers every workspace,
+    # and the root postinstall builds the sdk, client and react packages.
+    - name: Install dependencies
       run: npm ci
-      working-directory: js-pkg/client
-    - name: Test deps
-      run: npm ci
-      working-directory: tests
     - name: Run integration tests
       run: npm test
       working-directory: tests
