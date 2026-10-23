@@ -266,6 +266,12 @@ export class YSweetProvider {
       return
     }
 
+    if (this.status === STATUS_OFFLINE) {
+      // Local edits made while disconnected call checkSync(); don't let them
+      // arm a timeout that would reconnect the provider.
+      return
+    }
+
     if (!this.receivedAtLeastOneSyncResponse) {
       // Until we receive the first sync response on the connection, we assume
       // the server is an older version.
@@ -377,12 +383,20 @@ export class YSweetProvider {
    * Returns a promise that resolves to true if the connection was successful, or false if the connection failed.
    */
   private attemptToConnect(clientToken: ClientToken): Promise<boolean> {
+    // If disconnect()/destroy() was called while the connect loop was running,
+    // don't overwrite STATUS_OFFLINE with STATUS_CONNECTING.
+    if (this.status === STATUS_OFFLINE) {
+      return Promise.resolve(false)
+    }
+
     let promise = new Promise<boolean>((resolve) => {
       let statusListener = (event: YSweetStatus) => {
         if (event === STATUS_CONNECTED) {
           this.off(EVENT_CONNECTION_STATUS, statusListener)
           resolve(true)
-        } else if (event === STATUS_ERROR) {
+        } else if (event === STATUS_ERROR || event === STATUS_OFFLINE) {
+          // Resolve on STATUS_OFFLINE too, so that a disconnect during this
+          // attempt doesn't leave the connect loop waiting forever.
           this.off(EVENT_CONNECTION_STATUS, statusListener)
           resolve(false)
         }
@@ -417,6 +431,13 @@ export class YSweetProvider {
         clientToken = await this.ensureClientToken()
       } catch (e) {
         console.warn('Failed to get client token', e)
+
+        // Don't overwrite STATUS_OFFLINE if we were disconnected while
+        // waiting for the token.
+        if (this.status === STATUS_OFFLINE) {
+          break connecting
+        }
+
         this.setStatus(STATUS_ERROR)
         let timeout =
           DELAY_MS_BEFORE_RETRY_TOKEN_REFRESH *
@@ -430,6 +451,10 @@ export class YSweetProvider {
       for (let i = 0; i < RETRIES_BEFORE_TOKEN_REFRESH; i++) {
         if (await this.attemptToConnect(clientToken)) {
           this.retries = 0
+          break connecting
+        }
+
+        if (this.status === STATUS_OFFLINE) {
           break connecting
         }
 
@@ -461,6 +486,11 @@ export class YSweetProvider {
 
   public disconnect() {
     this.setStatus(STATUS_OFFLINE)
+
+    // Cut any backoff sleep short so the connect loop sees STATUS_OFFLINE and exits.
+    this.reconnectSleeper?.wake()
+    this.clearHeartbeat()
+    this.clearConnectionTimeout()
 
     if (this.websocket) {
       this.websocket.close()
@@ -588,10 +618,14 @@ export class YSweetProvider {
 
   private websocketClose(event: CloseEvent) {
     this.emit(EVENT_CONNECTION_CLOSE, event)
-    this.setStatus(STATUS_ERROR)
     this.clearHeartbeat()
     this.clearConnectionTimeout()
-    this.connect()
+
+    // A close caused by disconnect()/destroy() must not trigger a reconnect.
+    if (this.status !== STATUS_OFFLINE) {
+      this.setStatus(STATUS_ERROR)
+      this.connect()
+    }
 
     // Remove all awareness states except for our own.
     awarenessProtocol.removeAwarenessStates(
@@ -605,10 +639,15 @@ export class YSweetProvider {
 
   private websocketError(event: Event) {
     this.emit(EVENT_CONNECTION_ERROR, event)
-    this.setStatus(STATUS_ERROR)
     this.clearHeartbeat()
     this.clearConnectionTimeout()
 
+    // An error after disconnect()/destroy() must not trigger a reconnect.
+    if (this.status === STATUS_OFFLINE) {
+      return
+    }
+
+    this.setStatus(STATUS_ERROR)
     this.connect()
   }
 
@@ -635,9 +674,8 @@ export class YSweetProvider {
   }
 
   public destroy() {
-    if (this.websocket) {
-      this.websocket.close()
-    }
+    // Without this, the connect loop keeps reconnecting after destroy().
+    this.disconnect()
 
     if (this.indexedDBProvider) {
       this.indexedDBProvider.destroy()
