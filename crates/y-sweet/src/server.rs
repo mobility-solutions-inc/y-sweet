@@ -50,6 +50,8 @@ const PING_EVERY: Duration = Duration::from_secs(20);
 // If we haven't received a pong in the last 40 seconds, we close the connection.
 // All modern browsers will respond to websocket pings with a pong message.
 const PONG_TIMEOUT: Duration = Duration::from_secs(40);
+// How long to wait for a close frame to be sent before giving up on a timed-out connection.
+const CLOSE_TIMEOUT: Duration = Duration::from_secs(1);
 
 fn current_time_epoch_millis() -> u64 {
     let now = std::time::SystemTime::now();
@@ -553,7 +555,14 @@ async fn handle_socket_upgrade(
     let cancellation_token = server_state.cancellation_token.clone();
 
     Ok(ws.on_upgrade(move |socket| {
-        handle_socket(socket, awareness, authorization, cancellation_token)
+        handle_socket(
+            socket,
+            awareness,
+            authorization,
+            cancellation_token,
+            PING_EVERY,
+            PONG_TIMEOUT,
+        )
     }))
 }
 
@@ -611,6 +620,8 @@ async fn handle_socket(
     awareness: Arc<RwLock<Awareness>>,
     authorization: Authorization,
     cancellation_token: CancellationToken,
+    ping_every: Duration,
+    pong_timeout: Duration,
 ) {
     let (mut sink, mut stream) = socket.split();
     let (send, mut recv) = channel(1024);
@@ -618,8 +629,10 @@ async fn handle_socket(
     let last_pong = Arc::new(RwLock::new(tokio::time::Instant::now()));
     let last_pong_clone = last_pong.clone();
 
-    tokio::spawn(async move {
-        let mut ticker = tokio::time::interval(PING_EVERY);
+    // If this task ends (pong timeout or send error), the main loop below ends too, so that
+    // the DocConnection is dropped and the client's awareness state is cleared.
+    let mut sender_task = tokio::spawn(async move {
+        let mut ticker = tokio::time::interval(ping_every);
         ticker.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Delay);
 
         loop {
@@ -628,14 +641,22 @@ async fn handle_socket(
                     let Some(msg) = msg else {
                         break;
                     };
-                    let _ = sink.send(Message::Binary(msg)).await;
-                }
-                _ = ticker.tick() => {
-                    if last_pong_clone.read().expect("Failed to get read lock on last_pong").elapsed() > PONG_TIMEOUT {
-                        tracing::info!("Pong timeout, closing connection");
+                    if let Err(e) = sink.send(Message::Binary(msg)).await {
+                        tracing::info!(?e, "Error sending message, closing connection");
                         break;
                     }
-                    let _ = sink.send(Message::Ping(vec![])).await;
+                }
+                _ = ticker.tick() => {
+                    if last_pong_clone.read().expect("Failed to get read lock on last_pong").elapsed() > pong_timeout {
+                        tracing::info!("Pong timeout, closing connection");
+                        // Best effort; the peer may be gone, so don't wait on it.
+                        let _ = tokio::time::timeout(CLOSE_TIMEOUT, sink.send(Message::Close(None))).await;
+                        break;
+                    }
+                    if let Err(e) = sink.send(Message::Ping(vec![])).await {
+                        tracing::info!(?e, "Error sending ping, closing connection");
+                        break;
+                    }
                 }
             }
         }
@@ -675,12 +696,18 @@ async fn handle_socket(
                     tracing::warn!(?e, "Error handling message");
                 }
             }
+            _ = &mut sender_task => {
+                tracing::debug!("Closing doc connection because sender task ended...");
+                break;
+            }
             _ = cancellation_token.cancelled() => {
                 tracing::debug!("Closing doc connection due to server cancel...");
                 break;
             }
         }
     }
+
+    sender_task.abort();
 }
 
 async fn check_store(
@@ -908,5 +935,108 @@ mod test {
         assert_eq!(token.url, expected_url);
         assert_eq!(token.doc_id, doc_id);
         assert!(token.token.is_none());
+    }
+
+    const TEST_PING_EVERY: Duration = Duration::from_millis(50);
+    const TEST_PONG_TIMEOUT: Duration = Duration::from_millis(200);
+
+    /// Serves `handle_socket` with short ping/pong timeouts. Returns the server's address and
+    /// a receiver that gets a message each time `handle_socket` returns.
+    async fn spawn_socket_server(
+        awareness: Arc<RwLock<Awareness>>,
+    ) -> (std::net::SocketAddr, Receiver<()>) {
+        let (done_send, done_recv) = channel(1);
+        let app = Router::new().route(
+            "/ws",
+            get(move |ws: WebSocketUpgrade| async move {
+                ws.on_upgrade(move |socket| async move {
+                    handle_socket(
+                        socket,
+                        awareness,
+                        Authorization::Full,
+                        CancellationToken::new(),
+                        TEST_PING_EVERY,
+                        TEST_PONG_TIMEOUT,
+                    )
+                    .await;
+                    let _ = done_send.send(()).await;
+                })
+            }),
+        );
+        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let addr = listener.local_addr().unwrap();
+        tokio::spawn(async move { axum::serve(listener, app).await.unwrap() });
+        (addr, done_recv)
+    }
+
+    /// Connects a client, sends an awareness state for it, and waits until the server has it.
+    async fn connect_with_awareness(
+        addr: std::net::SocketAddr,
+        awareness: &Arc<RwLock<Awareness>>,
+    ) -> (
+        tokio_tungstenite::WebSocketStream<
+            tokio_tungstenite::MaybeTlsStream<tokio::net::TcpStream>,
+        >,
+        u64,
+    ) {
+        use yrs::updates::encoder::Encode;
+
+        let (mut client, _) = tokio_tungstenite::connect_async(format!("ws://{addr}/ws"))
+            .await
+            .unwrap();
+
+        let mut client_awareness = Awareness::new(yrs::Doc::new());
+        client_awareness.set_local_state(r#"{"user":"ghost"}"#);
+        let client_id = client_awareness.client_id();
+        let msg =
+            y_sweet_core::sync::Message::Awareness(client_awareness.update().unwrap()).encode_v1();
+        client
+            .send(tokio_tungstenite::tungstenite::Message::Binary(msg))
+            .await
+            .unwrap();
+
+        tokio::time::timeout(Duration::from_secs(5), async {
+            while !awareness.read().unwrap().clients().contains_key(&client_id) {
+                tokio::time::sleep(Duration::from_millis(10)).await;
+            }
+        })
+        .await
+        .expect("Server never received client awareness state");
+
+        (client, client_id)
+    }
+
+    #[tokio::test]
+    async fn test_pong_timeout_closes_connection() {
+        let awareness = Arc::new(RwLock::new(Awareness::new(yrs::Doc::new())));
+        let (addr, mut done_recv) = spawn_socket_server(awareness.clone()).await;
+
+        // The client never reads from the socket after this, so it never answers pings,
+        // like a peer that went away without closing the TCP connection.
+        let (_client, client_id) = connect_with_awareness(addr, &awareness).await;
+
+        tokio::time::timeout(Duration::from_secs(5), done_recv.recv())
+            .await
+            .expect("handle_socket did not return after pong timeout");
+        assert!(!awareness.read().unwrap().clients().contains_key(&client_id));
+    }
+
+    #[tokio::test]
+    async fn test_responsive_client_stays_connected() {
+        let awareness = Arc::new(RwLock::new(Awareness::new(yrs::Doc::new())));
+        let (addr, mut done_recv) = spawn_socket_server(awareness.clone()).await;
+
+        let (client, client_id) = connect_with_awareness(addr, &awareness).await;
+        let (_client_sink, mut client_stream) = client.split();
+        // Reading lets tungstenite answer pings with pongs.
+        tokio::spawn(async move { while client_stream.next().await.is_some() {} });
+
+        assert!(
+            tokio::time::timeout(TEST_PONG_TIMEOUT * 4, done_recv.recv())
+                .await
+                .is_err(),
+            "handle_socket returned while client was answering pings"
+        );
+        assert!(awareness.read().unwrap().clients().contains_key(&client_id));
     }
 }
