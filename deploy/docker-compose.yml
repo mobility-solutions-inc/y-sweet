@@ -1,7 +1,7 @@
 services:
   y-sweet:
     restart: unless-stopped
-    image: ghcr.io/jamsocket/y-sweet:latest
+    image: ghcr.io/mobility-solutions-inc/y-sweet:latest
     build:
       dockerfile: Dockerfile
       context: ../crates

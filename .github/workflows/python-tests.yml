@@ -1,11 +1,10 @@
 name: Run Python tests
 
 on:
+  push:
+    branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
-    paths:
-      - "python/**"
-      - ".github/workflows/python-tests.yml"
 
 jobs:
   uv-example:

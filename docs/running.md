@@ -26,4 +26,4 @@ Run the Y-Sweet server on [Jamsocket's session backends](https://jamsocket.com/y
 
 ## Docker Image
 
-The latest Docker image is available as `ghcr.io/jamsocket/y-sweet:latest`. You can find a [list of images here](https://github.com/jamsocket/y-sweet/pkgs/container/y-sweet).
+The latest Docker image is available as `ghcr.io/mobility-solutions-inc/y-sweet:latest`. You can find a [list of images here](https://github.com/mobility-solutions-inc/y-sweet/pkgs/container/y-sweet).
