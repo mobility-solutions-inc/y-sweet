@@ -69,7 +69,7 @@ export class Server {
 
     let command = `target/debug/y-sweet serve --port ${this.port} ${this.dataDir} --prod`
     if (configuration.useAuth) {
-      command += ` --auth ${auth.private_key}`
+      command += ` --auth=${auth.private_key}`
     }
 
     command +=
@@ -80,6 +80,8 @@ export class Server {
       cwd: CRATE_BASE,
       shell: true,
       stdio: 'ignore',
+      // Run in its own process group so cleanup also stops the server, not just the shell.
+      detached: true,
       env: { RUST_BACKTRACE: '1', ...process.env },
     })
     console.log('Done spawning server.')
@@ -117,7 +119,7 @@ export class Server {
 
   cleanup() {
     this.finished = true
-    this.process.kill()
+    process.kill(-this.process.pid!)
     rmSync(this.dataDir, { recursive: true, force: true })
   }
 }

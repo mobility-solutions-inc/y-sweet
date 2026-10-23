@@ -22,6 +22,8 @@ class DocServer {
       cwd: CRATE_BASE,
       shell: true,
       stdio: 'inherit',
+      // Run in its own process group so cleanup can also stop the server that `cargo run` spawns.
+      detached: true,
       env: {
         SESSION_BACKEND_KEY: 'mydoc',
         PORT: this.port.toString(),
@@ -70,7 +72,7 @@ class DocServer {
   }
 
   cleanup() {
-    this.process.kill()
+    process.kill(-this.process.pid!)
   }
 }
 
