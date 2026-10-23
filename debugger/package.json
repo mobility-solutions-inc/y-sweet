@@ -17,7 +17,7 @@
     "@y-sweet/sdk": "0.9.1",
     "autoprefixer": "10.4.14",
     "eslint": "8.46.0",
-    "eslint-config-next": "13.4.12",
+    "eslint-config-next": "16.4.2",
     "next": "14.2.35",
     "postcss": "8.4.27",
     "prettier": "^3.0.0",
