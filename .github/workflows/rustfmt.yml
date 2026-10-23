@@ -13,7 +13,7 @@ jobs:
       run:
         working-directory: ./crates
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Install rustfmt
         run: rustup update && rustup component add rustfmt
       - name: Check format
