@@ -3,7 +3,7 @@ import Title from '@/components/Title'
 
 export default function Home() {
   return (
-    <div className="lg:h-full overflow-y-scroll space-y-4 p-4 lg:p-8 relative w-auto bg-[radial-gradient(at_bottom_left,_var(--tw-gradient-stops))] from-white/90 via-pink-50/90 to-pink-100/90 rounded-lg">
+    <div className="lg:h-full overflow-y-scroll space-y-4 p-4 lg:p-8 relative w-auto bg-radial-[at_bottom_left] from-white/90 via-pink-50/90 to-pink-100/90 rounded-lg">
       <Title>Demos</Title>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 max-w-2xl">
         <ProjectLink
@@ -65,7 +65,7 @@ function ProjectLink(props: ProjectLinkProps) {
   return (
     <Link
       href={props.url}
-      className="flex flex-col pt-6 pb-8 px-6 bg-white/50 border border-white/80 shadow-sm hover:bg-white/90 transition-all rounded-lg"
+      className="flex flex-col pt-6 pb-8 px-6 bg-white/50 border border-white/80 shadow-xs hover:bg-white/90 transition-all rounded-lg"
     >
       <span className="text-pink-950 font-medium text-base lg:text-lg pb-2">{props.name}</span>
       <span className="text-pink-950 text-sm">{props.description}</span>
