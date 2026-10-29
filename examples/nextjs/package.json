@@ -18,7 +18,7 @@
     "@headlessui/react": "^2.2.10",
     "@heroicons/react": "2.2.0",
     "@mantine/core": "^8.3.18",
-    "@mantine/hooks": "^8.3.18",
+    "@mantine/hooks": "^9.7.4",
     "@monaco-editor/react": "^4.7.0",
     "@react-three/drei": "^10.7.9",
     "@react-three/fiber": "^9.8.2",
