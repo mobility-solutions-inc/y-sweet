@@ -2306,7 +2306,7 @@ dependencies = [
  "dashmap",
  "data-encoding",
  "getrandom 0.2.17",
- "rand 0.8.8",
+ "rand 0.10.3",
  "reqwest",
  "rusty-s3",
  "serde",
