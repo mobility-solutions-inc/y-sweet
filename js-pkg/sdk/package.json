@@ -42,6 +42,6 @@
     "url": "https://github.com/drifting-in-space/y-sweet/issues"
   },
   "dependencies": {
-    "@types/node": "^20.5.9"
+    "@types/node": "^26.6.5"
   }
 }
