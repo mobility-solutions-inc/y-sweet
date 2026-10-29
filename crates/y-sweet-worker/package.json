@@ -6,6 +6,6 @@
 		"dev": "wrangler dev --persist-to ./data --port 8080"
 	},
 	"devDependencies": {
-		"wrangler": "^4.152.0"
+		"wrangler": "^4.153.0"
 	}
 }
