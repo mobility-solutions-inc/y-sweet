@@ -30,7 +30,7 @@
     "@y-sweet/react": "0.9.1",
     "@y-sweet/sdk": "0.9.1",
     "codemirror": "5.65.14",
-    "next": "16.4.2",
+    "next": "16.4.5",
     "postcss": "^8.5.31",
     "quill": "^2.0.3",
     "quill-cursors": "4.0.2",
